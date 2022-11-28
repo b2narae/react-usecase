@@ -1,9 +1,9 @@
-
+import Topbar from "./topbar/topbar.jsx"
 function App() {
   return (
-    <div className="App">
-      blog app
-    </div>
+    <>
+    <Topbar></Topbar>
+    </>
   );
 }
 
