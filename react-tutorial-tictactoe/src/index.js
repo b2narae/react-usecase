@@ -10,45 +10,14 @@ const Square = ({value, onClick}) => {
     )
 }
 
-const Board = () => {
-    const [xIsNext, setxIsNext] = useState(true);
-    const [squares, setSquares] = useState(Array(9).fill(null));
-    let status;
-
-    const handleClick = (i) => {
-        const squaresCpy = squares.slice();
-
-        if (squaresCpy[i] || calculateWinner(squares)) {
-            return;
-        }
-
-        squaresCpy[i] = (xIsNext) ? 'X' : 'O';
-
-        setxIsNext(!xIsNext);
-        setSquares(squaresCpy);
-    }
-
-    const updateStatus = () => {        
-        const winner = calculateWinner(squares);
-
-        if (winner) {
-            status = 'Winner is ' + winner;
-        }
-        else {
-            status = 'Next player: ' + ((xIsNext) ? ('X') : ('O'));
-        }
-    }
-    
+const Board = ({squares, handleClick}) => {
     const renderSquare = (i) => (
         <Square value={squares[i]} onClick={() => handleClick(i)}/>
         // <Square value={squares[i]} onClick={handleClick(i)}/> // Too many re-render Error
     )
 
-    updateStatus();
-
     return (
         <div>
-          <div className="status">{status}</div>
           <div className="board-row">
             {renderSquare(0)}
             {renderSquare(1)}
@@ -69,13 +38,52 @@ const Board = () => {
 }
 
 const Game = () => {
+    let status;
+    const [xIsNext, setxIsNext] = useState(true);
+    const [history, setHistory] = useState([
+        {
+            squares: Array(9).fill(null)
+        }
+    ])
+
+    const updateStatus = () => {        
+        const winner = calculateWinner(history[history.length - 1].squares);
+
+        if (winner) {
+            status = 'Winner is ' + winner;
+        }
+        else {
+            status = 'Next player: ' + ((xIsNext) ? ('X') : ('O'));
+        }
+    }
+    
+    const handleClick = (i) => {
+        const squaresCurrent = history[history.length - 1].squares.slice(); // splice (x)
+
+        if (squaresCurrent[i]) {
+            console.log('already occupied');
+            return;
+        }
+        if (calculateWinner(squaresCurrent)) {
+            console.log('game over')
+            return;
+        }
+
+        squaresCurrent[i] = (xIsNext) ? 'X' : 'O';
+        setxIsNext(!xIsNext);
+        setHistory([...history, {squares: squaresCurrent}]);
+    }
+    
+    updateStatus();
+    console.log(history);
+
     return (
         <div className="game">
             <div className="game-board">
-                <Board />
+                <Board squares={history[history.length - 1].squares} handleClick={(i) => {handleClick(i)}}/>
             </div>
             <div className="game-info">
-                <div>{/* status */}</div>
+                <div>{status}</div>
                 <ol>{/* TODO */}</ol>
             </div>
         </div>
@@ -95,7 +103,7 @@ const calculateWinner = (squares) => {
     ]
     for (let i = 0; i < lines.length; ++i) {
         const [a, b, c] = lines[i];
-        if (squares[a] && squares[a] == squares[b] && squares[b] == squares[c]) {
+        if (squares[a] && squares[a] === squares[b] && squares[b] === squares[c]) { // == (x)
             return squares[a];
         }
     }
