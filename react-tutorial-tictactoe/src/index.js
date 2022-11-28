@@ -40,14 +40,15 @@ const Board = ({squares, handleClick}) => {
 const Game = () => {
     let status;
     const [xIsNext, setxIsNext] = useState(true);
+    const [stepNumber, setStepNumber] = useState(0);
     const [history, setHistory] = useState([
         {
             squares: Array(9).fill(null)
         }
     ])
-
+    
     const updateStatus = () => {        
-        const winner = calculateWinner(history[history.length - 1].squares);
+        const winner = calculateWinner(history[stepNumber].squares);
 
         if (winner) {
             status = 'Winner is ' + winner;
@@ -58,7 +59,8 @@ const Game = () => {
     }
     
     const handleClick = (i) => {
-        const squaresCurrent = history[history.length - 1].squares.slice(); // splice (x)
+        const historyCurrent = history.slice(0, stepNumber + 1); 
+        const squaresCurrent = historyCurrent[historyCurrent.length - 1].squares.slice(); // splice (x)
 
         if (squaresCurrent[i]) {
             console.log('already occupied');
@@ -71,20 +73,37 @@ const Game = () => {
 
         squaresCurrent[i] = (xIsNext) ? 'X' : 'O';
         setxIsNext(!xIsNext);
-        setHistory([...history, {squares: squaresCurrent}]);
+        setStepNumber(historyCurrent.length); // history.length (o)
+        setHistory([...historyCurrent, {squares: squaresCurrent}]);
     }
-    
+
+    const jumpTo = (move) => {
+        setStepNumber(move)
+        setxIsNext((move % 2) === 0)
+    }
+
+    const moves = history.map((element, move) => {
+        const description = (move) ? 'Go to step #' + move : 'Go to game start';
+        return (
+            <li key={move}>
+                {/* <button onClick={jumpTo(move)}>{description}</button> */}
+                <button onClick={() => jumpTo(move)}>{description}</button>
+            </li>
+        );
+    })
+
     updateStatus();
     console.log(history);
 
     return (
         <div className="game">
             <div className="game-board">
-                <Board squares={history[history.length - 1].squares} handleClick={(i) => {handleClick(i)}}/>
+                {/* <Board squares={history[history.length - 1].squares} handleClick={(i) => {handleClick(i)}}/> */}
+                <Board squares={history[stepNumber].squares} handleClick={(i) => {handleClick(i)}}/>
             </div>
             <div className="game-info">
                 <div>{status}</div>
-                <ol>{/* TODO */}</ol>
+                <ol>{moves}</ol>
             </div>
         </div>
     )
